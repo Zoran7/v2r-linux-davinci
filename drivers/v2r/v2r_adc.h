@@ -63,4 +63,33 @@ int adc_single(unsigned int channel);
 
 #define DM365_ADC_EMUCTRL   0x30
 
+/* ioctls definition */
+#pragma pack(1)
+#define     DM365_ADC_IOC_BASE 'v'
+
+/* Ioctl options which are to be passed while calling the ioctl */
+#define DM365_ADC_GET_SINGLE      _IOWR(DM365_ADC_IOC_BASE, 1, struct v2r_adc_single)
+#define DM365_ADC_GET_BLOCK       _IOWR(DM365_ADC_IOC_BASE, 2, struct v2r_adc_block)
+
+// DM365_ADC_IOC_MAXNR must match to largest ioctl command
+#define     DM365_ADC_IOC_MAXNR (DM365_ADC_IOC_BASE + 2)
+
+#pragma pack()
+
+// v2r v1. has 6 ADC channels
+#define DM365_ADC_CHANNEL_COUNT ADC_MAX_CHANNELS
+
+/* Structure Definitions */
+/* To read single channel value */
+struct v2r_adc_single {
+    unsigned short channel;       /* channel no to read (0-5)*/
+    unsigned short value;         /* ADC channel value */
+};
+
+/* Structure Definitions */
+/* To read all channels at once */
+struct v2r_adc_block {
+    unsigned short values[DM365_ADC_CHANNEL_COUNT];         /* ADC channel values */
+};
+
 #endif //_ADC_H

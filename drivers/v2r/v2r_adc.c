@@ -119,11 +119,86 @@
  {
    return 0;
  }
+ static long adc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ {
+    int ret=0;
+
+    if (_IOC_TYPE(cmd) != DM365_ADC_IOC_BASE) {
+        printk(KERN_ERR "[ADC] Alien command base %d\n", _IOC_TYPE(cmd));
+        return -1;
+    }
+
+    if (_IOC_NR(cmd) > DM365_ADC_IOC_MAXNR) {
+        printk(KERN_ERR "[ADC] Invalid IOCTL command %d\n", _IOC_NR(cmd));
+        return -1;
+    }
+
+    /* veryfying access permission of commands */
+    if (_IOC_DIR(cmd) & _IOC_READ)
+        ret = !access_ok(VERIFY_WRITE, (void *)arg, _IOC_SIZE(cmd));
+    else if (_IOC_DIR(cmd) & _IOC_WRITE)
+        ret = !access_ok(VERIFY_READ, (void *)arg, _IOC_SIZE(cmd));
+
+    if (ret) {
+        printk(KERN_ERR "[ADC] access denied\n");
+        return -1;  /* error in access */
+    }
+
+    switch(cmd) {
+
+    case DM365_ADC_GET_SINGLE:
+        {
+            struct __user v2r_adc_single *argp = (struct v2r_adc_single *)(arg);
+            struct v2r_adc_single d32;
+
+            // Copy data from user user data
+            if (copy_from_user(&d32, argp, sizeof(d32))) {
+                printk(KERN_ERR "[ADC] Can't read user data from %p\n", argp);
+                return -EFAULT;
+            }
+
+            if (d32.channel < 0 || d32.channel >= ADC_MAX_CHANNELS) {
+                printk(KERN_ERR "[ADC] Invalid channel number %d\n", d32.channel);
+                return -EINVAL;
+            }
+
+            d32.value = adc_single(d32.channel);
+
+            if (copy_to_user(&(argp->value), &(d32.value), sizeof(d32.value))) {
+                printk(KERN_ERR "[ADC] Can't write user data to %p\n", argp);
+                return -EFAULT;
+            }
+
+            break;
+        }
+
+    case DM365_ADC_GET_BLOCK:
+        {
+            struct __user v2r_adc_block *argp = (struct v2r_adc_block *)(arg);
+            struct v2r_adc_block d32;
+
+            adc_read_block(&(d32.values[0]), ADC_MAX_CHANNELS);
+
+            if (copy_to_user(argp, &d32, sizeof(d32))) {
+                printk(KERN_ERR "[ADC] Can't write block to user at %p\n", argp);
+                return -EFAULT;
+            }
+
+            break;
+        }
+    }
+
+    return ret;
+ }
+
+ 
+
  static const struct file_operations adc_fops = {
    .owner    = THIS_MODULE,
    .read   = adc_read,
    .open   = adc_open,
    .release  = adc_release,
+   .unlocked_ioctl = adc_ioctl,
  };
 
  static struct miscdevice adc_dev = {

@@ -186,6 +186,40 @@
 
             break;
         }
+
+        case DM365_ADC_GET_MULTIPLE:
+        {
+            struct __user v2r_adc_multiple *argp = (struct v2r_adc_multiple *)(arg);
+            struct v2r_adc_multiple d32;
+            int i = 0;
+
+            // Copy data from user user data
+            if (copy_from_user(&d32, argp, sizeof(d32))) {
+                printk(KERN_ERR "[ADC] Can't read user data from %p\n", argp);
+                return -EFAULT;
+            }
+
+            if (d32.count <= 0 || d32.count > ADC_MAX_CHANNELS) {
+                printk(KERN_ERR "[ADC] Invalid channel number %d \n", d32.count);
+                return -EINVAL;
+            }
+
+            for (i = 0; i < d32.count; i++) {
+                printk(KERN_ERR "[ADC] Read channel %d\n", d32.channels[i]);
+                d32.values[i] = adc_single(d32.channels[i]);
+            }
+
+            if (copy_to_user(argp, &d32, sizeof(d32))) {
+                printk(KERN_ERR "[ADC] Can't write block to user at %p\n", argp);
+                return -EFAULT;
+            }
+
+            break;
+        }
+
+        default:
+            printk(KERN_ERR "[ADC] Invalid command number 0x%x\n", cmd);
+            return -EINVAL;
     }
 
     return ret;

@@ -70,9 +70,10 @@ int adc_single(unsigned int channel);
 /* Ioctl options which are to be passed while calling the ioctl */
 #define DM365_ADC_GET_SINGLE      _IOWR(DM365_ADC_IOC_BASE, 1, struct v2r_adc_single)
 #define DM365_ADC_GET_BLOCK       _IOWR(DM365_ADC_IOC_BASE, 2, struct v2r_adc_block)
+#define DM365_ADC_GET_MULTIPLE       _IOWR(DM365_ADC_IOC_BASE, 4, struct v2r_adc_multiple)
 
 // DM365_ADC_IOC_MAXNR must match to largest ioctl command
-#define     DM365_ADC_IOC_MAXNR (DM365_ADC_IOC_BASE + 2)
+#define     DM365_ADC_IOC_MAXNR (DM365_ADC_IOC_BASE + 3)
 
 #pragma pack()
 
@@ -91,5 +92,15 @@ struct v2r_adc_single {
 struct v2r_adc_block {
     unsigned short values[DM365_ADC_CHANNEL_COUNT];         /* ADC channel values */
 };
+
+struct v2r_adc_multiple {
+    int count;
+
+    union {
+        unsigned short channels[DM365_ADC_CHANNEL_COUNT];       /* ADC channel to read from */
+        unsigned short values[DM365_ADC_CHANNEL_COUNT];         /* ADC channel values */
+    };
+};
+
 
 #endif //_ADC_H

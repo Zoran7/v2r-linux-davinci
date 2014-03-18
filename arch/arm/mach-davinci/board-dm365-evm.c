@@ -786,6 +786,12 @@ static void v2r_parse_cmdline(char * string)
 		    camera_run = 1;
 		}
 	    }
+		if (!strcmp(param_name, "i2c_frequency")) {
+			int temp;
+			kstrtoint(param_value, 10, &temp);
+			i2c_pdata.bus_freq = temp;
+			printk(KERN_INFO "Use %d KHz frequency on I2C bus\n", temp);
+		}
 	    if (!strcmp(param_name, "ghid")) {
 		if (strchr(param_value, 'k')) {
 		    printk("HID gadget keybord enabled\n");

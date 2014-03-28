@@ -1981,6 +1981,15 @@ static int inv_create_dmp_sysfs(struct iio_dev *ind)
 static int inv_mpu_probe(struct i2c_client *client,
 	const struct i2c_device_id *id)
 {
+	static struct mpu_platform_data gyro_platform_data_default = {
+		.int_config  = 0x10,
+		.level_shifter = 0,
+		.orientation = {   1,  0,  0,
+							0,  1,  0,
+							0,  0,  1 },
+	};
+
+	struct mpu_platform_data *plat_data;
 	struct inv_mpu_iio_s *st;
 	struct iio_dev *indio_dev;
 	int result;
@@ -2000,8 +2009,17 @@ static int inv_mpu_probe(struct i2c_client *client,
 	st->client = client;
 	st->sl_handle = client->adapter;
 	st->i2c_addr = client->addr;
-	st->plat_data =
-		*(struct mpu_platform_data *)dev_get_platdata(&client->dev);
+
+	plat_data = dev_get_platdata(&client->dev);
+
+	if (plat_data) {
+		st->plat_data = 
+		*(struct mpu_platform_data *)plat_data;
+	} else {
+		dev_warn(&client->dev, "Platform data is NULL. Use default\n");
+		st->plat_data = gyro_platform_data_default;
+	}
+
 	/* power is turned on inside check chip type*/
 	result = inv_check_chip_type(st, id);
 	if (result)

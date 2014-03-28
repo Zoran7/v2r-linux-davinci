@@ -24,6 +24,8 @@ source "drivers/staging/iio/magnetometer/Kconfig"
 source "drivers/staging/iio/meter/Kconfig"
 source "drivers/staging/iio/resolver/Kconfig"
 source "drivers/staging/iio/trigger/Kconfig"
+source "drivers/staging/iio/imu/Kconfig"
+source "drivers/staging/iio/inv_test/Kconfig"
 
 config IIO_DUMMY_EVGEN
        tristate

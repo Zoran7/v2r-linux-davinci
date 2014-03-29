@@ -2038,6 +2038,15 @@ static int inv_mpu_probe(struct i2c_client *client,
 		goto out_free;
 	}
 
+	/* set to bypass mode */
+	dev_info(&client->dev, "Set by-pass mode");
+	result = inv_i2c_single_write(st, REG_INT_PIN_CFG, st->plat_data.int_config | BIT_BYPASS_EN);
+
+	if (result) {
+		dev_err(&client->dev, "Failed to set by-pass mode");
+		goto out_free;
+	}
+
 	/* Make state variables available to all _show and _store functions. */
 	i2c_set_clientdata(client, indio_dev);
 	indio_dev->dev.parent = &client->dev;
